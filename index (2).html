@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IT & Operations Portal - System Management & PDF Generator</title>
+  <!-- Include jsPDF and autoTable for client-side PDF generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --success: #16a34a;
+      --pdf-color: #dc2626;
+      --pdf-hover: #b91c1c;
+      --radius: 8px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar Navigation */
+    aside {
+      width: 270px;
+      background: #0f172a;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      padding: 24px 16px;
+      flex-shrink: 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+      padding: 0 8px;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      background: var(--primary);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+
+    .brand-text h2 {
+      font-size: 1.05rem;
+      color: #f8fafc;
+      font-weight: 700;
+    }
+
+    .brand-text p {
+      font-size: 0.75rem;
+      color: #94a3b8;
+    }
+
+    .nav-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      text-align: left;
+      padding: 12px 14px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 0.92rem;
+      font-weight: 500;
+      margin-bottom: 6px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+    }
+
+    .nav-btn.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    /* Main Content */
+    main {
+      flex: 1;
+      padding: 32px 40px;
+      overflow-y: auto;
+    }
+
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    h1 {
+      font-size: 1.55rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    /* Forms */
+    .form-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .form-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 18px;
+      color: #1e293b;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    input, select, textarea {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.92rem;
+      outline: none;
+      background: #fff;
+      color: var(--text);
+      transition: border-color 0.2s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary);
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-top: 26px;
+    }
+
+    .checkbox-group input {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 10px 18px;
+      border-radius: var(--radius);
+      border: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-secondary { background: #e2e8f0; color: #334155; }
+    .btn-secondary:hover { background: #cbd5e1; }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-danger:hover { background: var(--danger-hover); }
+    .btn-pdf { background: #dc2626; color: #fff; }
+    .btn-pdf:hover { background: #b91c1c; }
+    .btn-sm { padding: 6px 12px; font-size: 0.8rem; }
+
+    /* Tables */
+    .table-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow-x: auto;
+      box-shadow: var(--shadow);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+
+    th {
+      background: #f8fafc;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    .badge-active { background: #dcfce7; color: #15803d; }
+    .badge-inactive { background: #fee2e2; color: #b91c1c; }
+
+    .actions-cell {
+      display: flex;
+      gap: 8px;
+    }
+
+    /* Reports & Stat Cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+
+    .stat-card h3 {
+      font-size: 2rem;
+      color: var(--primary);
+      margin-bottom: 4px;
+      font-weight: 700;
+    }
+
+    .stat-card p {
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    /* PDF Report Control Bar */
+    .report-filter-bar {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside>
+    <div class="brand">
+      <div class="brand-icon">⚙️</div>
+      <div class="brand-text">
+        <h2>IT Ops Portal</h2>
+        <p>Admin Workspace</p>
+      </div>
+    </div>
+    <button class="nav-btn active" onclick="navigate(event, 'configs')">🖥️ System Configurations</button>
+    <button class="nav-btn" onclick="navigate(event, 'departments')">🏢 Departments</button>
+    <button class="nav-btn" onclick="navigate(event, 'assets')">📦 Asset Management</button>
+    <button class="nav-btn" onclick="navigate(event, 'visitors')">📋 Visitor Log</button>
+    <button class="nav-btn" onclick="navigate(event, 'reports')">📊 Department Reports & PDF</button>
+  </aside>
+
+  <!-- Main Content Area -->
+  <main>
+
+    <!-- 1. SYSTEM CONFIGURATION MODULE -->
+    <section id="configs-section" class="section active">
+      <div class="section-header">
+        <h1>System Configurations</h1>
+      </div>
+
+      <div class="form-card">
+        <h3 class="form-title" id="config-form-title">Add New System Configuration</h3>
+        <input type="hidden" id="config-id" />
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="config-user">User Name</label>
+            <input type="text" id="config-user" placeholder="e.g., Parthilsinh Zala" required />
+          </div>
+          <div class="form-group">
+            <label for="config-dept">Department</label>
+            <select id="config-dept"></select>
+          </div>
+          <div class="form-group">
+            <label for="config-desc">System Configuration Description</label>
+            <input type="text" id="config-desc" placeholder="e.g., Core i9 14900K, 64GB DDR5, RTX 4090, 4TB SSD" required />
+          </div>
+          <div class="checkbox-group">
+            <label style="cursor: pointer; display: flex; align-items: center; gap: 8px;">
+              <input type="checkbox" id="config-status" checked /> Active Status
+            </label>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="saveConfig()">Save Configuration</button>
+          <button class="btn btn-secondary" onclick="resetConfigForm()">Clear</button>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>User Name</th>
+              <th>Department</th>
+              <th>Configuration Description</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="config-table-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 2. DEPARTMENTS MODULE -->
+    <section id="departments-section" class="section">
+      <div class="section-header">
+        <h1>Department Management</h1>
+      </div>
+
+      <div class="form-card">
+        <h3 class="form-title" id="dept-form-title">Add New Department</h3>
+        <input type="hidden" id="dept-id" />
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="dept-name">Department Name</label>
+            <input type="text" id="dept-name" placeholder="e.g., Video Department" required />
+          </div>
+          <div class="form-group">
+            <label for="dept-desc">Department Description</label>
+            <input type="text" id="dept-desc" placeholder="e.g., Video Editing, VFX & Thumbnail Design" required />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="saveDepartment()">Save Department</button>
+          <button class="btn btn-secondary" onclick="resetDeptForm()">Clear</button>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Department Name</th>
+              <th>Description</th>
+              <th>Total Configs Assigned</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="dept-table-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 3. ASSET MANAGEMENT MODULE -->
+    <section id="assets-section" class="section">
+      <div class="section-header">
+        <h1>Asset Management</h1>
+      </div>
+
+      <div class="form-card">
+        <h3 class="form-title" id="asset-form-title">Add Hardware / Device Asset</h3>
+        <input type="hidden" id="asset-id" />
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="asset-name">Asset Name</label>
+            <input type="text" id="asset-name" placeholder="e.g., Video Render Workstation Rig #1" required />
+          </div>
+          <div class="form-group">
+            <label for="asset-type">Asset Type</label>
+            <select id="asset-type">
+              <option value="Editing Workstation">Editing Workstation</option>
+              <option value="Rack Server">Rack Server</option>
+              <option value="Managed Switch / Router">Managed Switch / Router</option>
+              <option value="Network Firewall">Network Firewall</option>
+              <option value="Accounting Workstation">Accounting Workstation</option>
+              <option value="Admin Terminal">Admin Terminal</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="asset-sn">Serial / Tag Number</label>
+            <input type="text" id="asset-sn" placeholder="e.g., SN-VID-88219" required />
+          </div>
+          <div class="form-group">
+            <label for="asset-assignee">Assigned To (User / Dept)</label>
+            <input type="text" id="asset-assignee" placeholder="e.g., Parthilsinh / Video Department" required />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="saveAsset()">Save Asset</button>
+          <button class="btn btn-secondary" onclick="resetAssetForm()">Clear</button>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Asset Name</th>
+              <th>Type</th>
+              <th>Serial Number</th>
+              <th>Assigned To</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="asset-table-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 4. VISITOR LOG MODULE -->
+    <section id="visitors-section" class="section">
+      <div class="section-header">
+        <h1>Visitor Log</h1>
+      </div>
+
+      <div class="form-card">
+        <h3 class="form-title" id="visitor-form-title">Log New Visitor</h3>
+        <input type="hidden" id="visitor-id" />
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="visitor-name">Visitor Name</label>
+            <input type="text" id="visitor-name" placeholder="e.g., Amit Shah" required />
+          </div>
+          <div class="form-group">
+            <label for="visitor-purpose">Purpose of Visit</label>
+            <input type="text" id="visitor-purpose" placeholder="e.g., Server Software License Audit" required />
+          </div>
+          <div class="form-group">
+            <label for="visitor-contact">Contact Phone / Email</label>
+            <input type="text" id="visitor-contact" placeholder="e.g., +91 98250 11223" required />
+          </div>
+          <div class="form-group">
+            <label for="visitor-time">Check-in Time</label>
+            <input type="datetime-local" id="visitor-time" required />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="saveVisitor()">Log Visitor</button>
+          <button class="btn btn-secondary" onclick="resetVisitorForm()">Clear</button>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Visitor Name</th>
+              <th>Purpose</th>
+              <th>Contact Info</th>
+              <th>Check-in Date & Time</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="visitor-table-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 5. DEPARTMENT REPORT & PDF GENERATOR MODULE -->
+    <section id="reports-section" class="section">
+      <div class="section-header">
+        <h1>Department-Wise System Information Reports</h1>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn btn-secondary" onclick="renderReports()">🔄 Refresh</button>
+          <button class="btn btn-pdf" onclick="generateAllDepartmentsPDF()">📄 Export All Depts PDF</button>
+        </div>
+      </div>
+
+      <!-- PDF Filter & Action Bar -->
+      <div class="report-filter-bar">
+        <div class="filter-group">
+          <label for="pdf-dept-select" style="font-size: 0.9rem; color: #1e293b;">Select Department to Export:</label>
+          <select id="pdf-dept-select" style="min-width: 200px;"></select>
+        </div>
+        <button class="btn btn-pdf" onclick="generateSingleDepartmentPDF()">📥 Generate Department PDF Report</button>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3 id="stat-total-configs">0</h3>
+          <p>Total Configs</p>
+        </div>
+        <div class="stat-card">
+          <h3 id="stat-active-configs" style="color: var(--success);">0</h3>
+          <p>Active Configs</p>
+        </div>
+        <div class="stat-card">
+          <h3 id="stat-total-assets">0</h3>
+          <p>Total Assets</p>
+        </div>
+        <div class="stat-card">
+          <h3 id="stat-total-visitors">0</h3>
+          <p>Logged Visitors</p>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Department</th>
+              <th>Total Configurations</th>
+              <th>Active Configurations</th>
+              <th>Inactive Configurations</th>
+              <th>PDF Export Action</th>
+            </tr>
+          </thead>
+          <tbody id="report-table-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // --- Data Storage Helpers ---
+    const DB = {
+      get: (key) => JSON.parse(localStorage.getItem(key) || '[]'),
+      set: (key, data) => localStorage.setItem(key, JSON.stringify(data))
+    };
+
+    // Initialize Default Seed Data
+    function initializeSeedData() {
+      if (!localStorage.getItem('departments')) {
+        DB.set('departments', [
+          { name: "Video Department", description: "Video Editing, Thumbnail Rendering, VFX & High-End GPU Production" },
+          { name: "Account Department", description: "Invoicing, Tally Prime ERP, Financial Audits & Billing Systems" },
+          { name: "Admin Department", description: "Operations, General Office Administration & Biometric Security" }
+        ]);
+      }
+
+      if (!localStorage.getItem('configs')) {
+        DB.set('configs', [
+          { user: "Parthilsinh Zala", department: "Video Department", description: "Core i9 14900K, 64GB DDR5, RTX 4090 24GB, 4TB NVMe SSD", active: true },
+          { user: "Vikram Rajput", department: "Video Department", description: "Mac Studio M2 Max, 32GB RAM, 1TB SSD, DaVinci Resolve Studio", active: false },
+          { user: "Rohan Dave", department: "Account Department", description: "Core i5 13400, 16GB RAM, Tally Prime Gold, Windows 11 Pro", active: true },
+          { user: "Sneha Patel", department: "Admin Department", description: "Core i5 Desktop, Dual Monitor Setup, Biometric Admin Client", active: true },
+          { user: "Ananya Mehta", department: "Admin Department", description: "HP ProDesk 400 G7, 16GB RAM, 512GB SSD, Windows 11 Pro", active: true }
+        ]);
+      }
+
+      if (!localStorage.getItem('assets')) {
+        DB.set('assets', [
+          { name: "Render Workstation Rig #1", type: "Editing Workstation", sn: "SN-VID-88219", assignee: "Parthilsinh / Video Department" },
+          { name: "Accounting Server Node", type: "Accounting Workstation", sn: "SN-ACC-40291", assignee: "Account Department" },
+          { name: "Admin Biometric Controller PC", type: "Admin Terminal", sn: "SN-ADM-11029", assignee: "Admin Department Desk" }
+        ]);
+      }
+
+      if (!localStorage.getItem('visitors')) {
+        const now = new Date();
+        DB.set('visitors', [
+          { name: "Amit Shah", purpose: "Annual Tally Server License Audit", contact: "+91 98250 11223", time: now.toISOString().slice(0, 16) }
+        ]);
+      }
+    }
+
+    // --- Dynamic Department Dropdowns ---
+    function updateDepartmentDropdowns() {
+      const depts = DB.get('departments');
+      const selectConfig = document.getElementById('config-dept');
+      const selectPdf = document.getElementById('pdf-dept-select');
+      
+      const curConfigVal = selectConfig.value;
+      const curPdfVal = selectPdf.value;
+
+      selectConfig.innerHTML = '';
+      selectPdf.innerHTML = '<option value="ALL">-- All Departments Summary --</option>';
+
+      depts.forEach(d => {
+        const opt1 = document.createElement('option');
+        opt1.value = d.name;
+        opt1.innerText = d.name;
+        selectConfig.appendChild(opt1);
+
+        const opt2 = document.createElement('option');
+        opt2.value = d.name;
+        opt2.innerText = d.name;
+        selectPdf.appendChild(opt2);
+      });
+
+      if (curConfigVal && depts.some(d => d.name === curConfigVal)) selectConfig.value = curConfigVal;
+      if (curPdfVal) selectPdf.value = curPdfVal;
+    }
+
+    // --- Navigation ---
+    function navigate(e, tab) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+      document.getElementById(`${tab}-section`).classList.add('active');
+      e.currentTarget.classList.add('active');
+
+      if (tab === 'reports') {
+        updateDepartmentDropdowns();
+        renderReports();
+      }
+      if (tab === 'departments') renderDepartments();
+      if (tab === 'configs') updateDepartmentDropdowns();
+    }
+
+    // --- 1. SYSTEM CONFIGURATION CRUD ---
+    function renderConfigs() {
+      const configs = DB.get('configs');
+      const tbody = document.getElementById('config-table-body');
+      tbody.innerHTML = '';
+
+      if (configs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: var(--text-muted); padding: 24px;">No system configurations found.</td></tr>`;
+        return;
+      }
+
+      configs.forEach((item, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${item.user}</strong></td>
+          <td>${item.department}</td>
+          <td>${item.description}</td>
+          <td><span class="badge ${item.active ? 'badge-active' : 'badge-inactive'}">${item.active ? 'Active' : 'Inactive'}</span></td>
+          <td class="actions-cell">
+            <button class="btn btn-secondary btn-sm" onclick="editConfig(${index})">Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteConfig(${index})">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function saveConfig() {
+      const user = document.getElementById('config-user').value.trim();
+      const department = document.getElementById('config-dept').value;
+      const description = document.getElementById('config-desc').value.trim();
+      const active = document.getElementById('config-status').checked;
+      const editIndex = document.getElementById('config-id').value;
+
+      if (!user || !description || !department) {
+        alert('Please fill out all required fields.');
+        return;
+      }
+
+      const configs = DB.get('configs');
+      const payload = { user, department, description, active };
+
+      if (editIndex !== '') {
+        configs[editIndex] = payload;
+      } else {
+        configs.push(payload);
+      }
+
+      DB.set('configs', configs);
+      resetConfigForm();
+      renderConfigs();
+    }
+
+    function editConfig(index) {
+      const item = DB.get('configs')[index];
+      document.getElementById('config-id').value = index;
+      document.getElementById('config-user').value = item.user;
+      document.getElementById('config-dept').value = item.department;
+      document.getElementById('config-desc').value = item.description;
+      document.getElementById('config-status').checked = item.active;
+      document.getElementById('config-form-title').innerText = 'Edit System Configuration';
+    }
+
+    function deleteConfig(index) {
+      if (confirm('Are you sure you want to delete this configuration?')) {
+        const configs = DB.get('configs');
+        configs.splice(index, 1);
+        DB.set('configs', configs);
+        renderConfigs();
+      }
+    }
+
+    function resetConfigForm() {
+      document.getElementById('config-id').value = '';
+      document.getElementById('config-user').value = '';
+      document.getElementById('config-desc').value = '';
+      document.getElementById('config-status').checked = true;
+      document.getElementById('config-form-title').innerText = 'Add New System Configuration';
+    }
+
+    // --- 2. DEPARTMENT CRUD ---
+    function renderDepartments() {
+      const depts = DB.get('departments');
+      const configs = DB.get('configs');
+      const tbody = document.getElementById('dept-table-body');
+      tbody.innerHTML = '';
+
+      if (depts.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: var(--text-muted); padding: 24px;">No departments found.</td></tr>`;
+        return;
+      }
+
+      depts.forEach((d, index) => {
+        const count = configs.filter(c => c.department === d.name).length;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${index + 1}</strong></td>
+          <td><strong>${d.name}</strong></td>
+          <td>${d.description}</td>
+          <td><span class="badge" style="background:#e0f2fe; color:#0369a1;">${count} Systems</span></td>
+          <td class="actions-cell">
+            <button class="btn btn-secondary btn-sm" onclick="editDepartment(${index})">Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteDepartment(${index})">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function saveDepartment() {
+      const name = document.getElementById('dept-name').value.trim();
+      const description = document.getElementById('dept-desc').value.trim();
+      const editIndex = document.getElementById('dept-id').value;
+
+      if (!name || !description) {
+        alert('Please provide both department name and description.');
+        return;
+      }
+
+      const depts = DB.get('departments');
+      const payload = { name, description };
+
+      if (editIndex !== '') {
+        const oldName = depts[editIndex].name;
+        depts[editIndex] = payload;
+
+        if (oldName !== name) {
+          const configs = DB.get('configs');
+          configs.forEach(c => {
+            if (c.department === oldName) c.department = name;
+          });
+          DB.set('configs', configs);
+        }
+      } else {
+        if (depts.some(d => d.name.toLowerCase() === name.toLowerCase())) {
+          alert('This department already exists.');
+          return;
+        }
+        depts.push(payload);
+      }
+
+      DB.set('departments', depts);
+      resetDeptForm();
+      renderDepartments();
+      updateDepartmentDropdowns();
+      renderConfigs();
+    }
+
+    function editDepartment(index) {
+      const item = DB.get('departments')[index];
+      document.getElementById('dept-id').value = index;
+      document.getElementById('dept-name').value = item.name;
+      document.getElementById('dept-desc').value = item.description;
+      document.getElementById('dept-form-title').innerText = 'Edit Department';
+    }
+
+    function deleteDepartment(index) {
+      const depts = DB.get('departments');
+      const deptName = depts[index].name;
+
+      if (confirm(`Are you sure you want to delete "${deptName}"?`)) {
+        depts.splice(index, 1);
+        DB.set('departments', depts);
+        renderDepartments();
+        updateDepartmentDropdowns();
+      }
+    }
+
+    function resetDeptForm() {
+      document.getElementById('dept-id').value = '';
+      document.getElementById('dept-name').value = '';
+      document.getElementById('dept-desc').value = '';
+      document.getElementById('dept-form-title').innerText = 'Add New Department';
+    }
+
+    // --- 3. ASSET MANAGEMENT CRUD ---
+    function renderAssets() {
+      const assets = DB.get('assets');
+      const tbody = document.getElementById('asset-table-body');
+      tbody.innerHTML = '';
+
+      if (assets.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: var(--text-muted); padding: 24px;">No assets recorded.</td></tr>`;
+        return;
+      }
+
+      assets.forEach((item, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${item.name}</strong></td>
+          <td>${item.type}</td>
+          <td><code style="background:#f1f5f9; padding:2px 6px; border-radius:4px;">${item.sn}</code></td>
+          <td>${item.assignee}</td>
+          <td class="actions-cell">
+            <button class="btn btn-secondary btn-sm" onclick="editAsset(${index})">Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteAsset(${index})">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function saveAsset() {
+      const name = document.getElementById('asset-name').value.trim();
+      const type = document.getElementById('asset-type').value;
+      const sn = document.getElementById('asset-sn').value.trim();
+      const assignee = document.getElementById('asset-assignee').value.trim();
+      const editIndex = document.getElementById('asset-id').value;
+
+      if (!name || !sn || !assignee) {
+        alert('Please fill out all asset details.');
+        return;
+      }
+
+      const assets = DB.get('assets');
+      const payload = { name, type, sn, assignee };
+
+      if (editIndex !== '') {
+        assets[editIndex] = payload;
+      } else {
+        assets.push(payload);
+      }
+
+      DB.set('assets', assets);
+      resetAssetForm();
+      renderAssets();
+    }
+
+    function editAsset(index) {
+      const item = DB.get('assets')[index];
+      document.getElementById('asset-id').value = index;
+      document.getElementById('asset-name').value = item.name;
+      document.getElementById('asset-type').value = item.type;
+      document.getElementById('asset-sn').value = item.sn;
+      document.getElementById('asset-assignee').value = item.assignee;
+      document.getElementById('asset-form-title').innerText = 'Edit Hardware / Asset';
+    }
+
+    function deleteAsset(index) {
+      if (confirm('Are you sure you want to delete this asset?')) {
+        const assets = DB.get('assets');
+        assets.splice(index, 1);
+        DB.set('assets', assets);
+        renderAssets();
+      }
+    }
+
+    function resetAssetForm() {
+      document.getElementById('asset-id').value = '';
+      document.getElementById('asset-name').value = '';
+      document.getElementById('asset-sn').value = '';
+      document.getElementById('asset-assignee').value = '';
+      document.getElementById('asset-form-title').innerText = 'Add Hardware / Device Asset';
+    }
+
+    // --- 4. VISITOR LOG CRUD ---
+    function renderVisitors() {
+      const visitors = DB.get('visitors');
+      const tbody = document.getElementById('visitor-table-body');
+      tbody.innerHTML = '';
+
+      if (visitors.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: var(--text-muted); padding: 24px;">No visitors logged.</td></tr>`;
+        return;
+      }
+
+      visitors.forEach((item, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${item.name}</strong></td>
+          <td>${item.purpose}</td>
+          <td>${item.contact}</td>
+          <td>${new Date(item.time).toLocaleString()}</td>
+          <td class="actions-cell">
+            <button class="btn btn-secondary btn-sm" onclick="editVisitor(${index})">Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteVisitor(${index})">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function saveVisitor() {
+      const name = document.getElementById('visitor-name').value.trim();
+      const purpose = document.getElementById('visitor-purpose').value.trim();
+      const contact = document.getElementById('visitor-contact').value.trim();
+      const time = document.getElementById('visitor-time').value;
+      const editIndex = document.getElementById('visitor-id').value;
+
+      if (!name || !purpose || !contact || !time) {
+        alert('Please complete all visitor fields.');
+        return;
+      }
+
+      const visitors = DB.get('visitors');
+      const payload = { name, purpose, contact, time };
+
+      if (editIndex !== '') {
+        visitors[editIndex] = payload;
+      } else {
+        visitors.push(payload);
+      }
+
+      DB.set('visitors', visitors);
+      resetVisitorForm();
+      renderVisitors();
+    }
+
+    function editVisitor(index) {
+      const item = DB.get('visitors')[index];
+      document.getElementById('visitor-id').value = index;
+      document.getElementById('visitor-name').value = item.name;
+      document.getElementById('visitor-purpose').value = item.purpose;
+      document.getElementById('visitor-contact').value = item.contact;
+      document.getElementById('visitor-time').value = item.time;
+      document.getElementById('visitor-form-title').innerText = 'Edit Visitor Entry';
+    }
+
+    function deleteVisitor(index) {
+      if (confirm('Delete this visitor log?')) {
+        const visitors = DB.get('visitors');
+        visitors.splice(index, 1);
+        DB.set('visitors', visitors);
+        renderVisitors();
+      }
+    }
+
+    function resetVisitorForm() {
+      document.getElementById('visitor-id').value = '';
+      document.getElementById('visitor-name').value = '';
+      document.getElementById('visitor-purpose').value = '';
+      document.getElementById('visitor-contact').value = '';
+      document.getElementById('visitor-time').value = '';
+      document.getElementById('visitor-form-title').innerText = 'Log New Visitor';
+    }
+
+    // --- 5. DEPARTMENT REPORT & PDF GENERATION ---
+    function renderReports() {
+      const configs = DB.get('configs');
+      const depts = DB.get('departments');
+      const assets = DB.get('assets');
+      const visitors = DB.get('visitors');
+
+      // Metric Cards
+      document.getElementById('stat-total-configs').innerText = configs.length;
+      document.getElementById('stat-active-configs').innerText = configs.filter(c => c.active).length;
+      document.getElementById('stat-total-assets').innerText = assets.length;
+      document.getElementById('stat-total-visitors').innerText = visitors.length;
+
+      const reportMap = {};
+      depts.forEach(d => {
+        reportMap[d.name] = { total: 0, active: 0, inactive: 0 };
+      });
+
+      configs.forEach(c => {
+        if (!reportMap[c.department]) {
+          reportMap[c.department] = { total: 0, active: 0, inactive: 0 };
+        }
+        reportMap[c.department].total += 1;
+        if (c.active) {
+          reportMap[c.department].active += 1;
+        } else {
+          reportMap[c.department].inactive += 1;
+        }
+      });
+
+      const tbody = document.getElementById('report-table-body');
+      tbody.innerHTML = '';
+
+      const departmentNames = Object.keys(reportMap);
+      if (departmentNames.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: var(--text-muted); padding: 24px;">No departments available.</td></tr>`;
+        return;
+      }
+
+      departmentNames.forEach(dept => {
+        const row = reportMap[dept];
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${dept}</strong></td>
+          <td>${row.total}</td>
+          <td><span class="badge badge-active">${row.active} Active</span></td>
+          <td><span class="badge badge-inactive">${row.inactive} Inactive</span></td>
+          <td>
+            <button class="btn btn-pdf btn-sm" onclick="exportDeptPDF('${dept}')">📄 Download PDF</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // --- PDF EXPORT ENGINE (jsPDF + autoTable) ---
+    function exportDeptPDF(deptName) {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+      const configs = DB.get('configs').filter(c => c.department === deptName);
+      const depts = DB.get('departments');
+      const deptObj = depts.find(d => d.name === deptName);
+      const deptDesc = deptObj ? deptObj.description : 'Department Systems Configuration Report';
+
+      // Header Banner
+      doc.setFillColor(37, 99, 235); // Primary Blue
+      doc.rect(0, 0, 210, 32, 'F');
+
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.text("DEPARTMENT SYSTEM CONFIGURATION REPORT", 14, 16);
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Generated On: ${new Date().toLocaleString()}`, 14, 24);
+
+      // Department Overview Section
+      doc.setTextColor(15, 23, 42);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Department: ${deptName}`, 14, 42);
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100, 116, 139);
+      doc.text(`Description: ${deptDesc}`, 14, 48);
+
+      // Summary Count Boxes
+      const total = configs.length;
+      const activeCount = configs.filter(c => c.active).length;
+      const inactiveCount = total - activeCount;
+
+      doc.setDrawColor(226, 232, 240);
+      doc.setFillColor(248, 250, 252);
+      doc.roundedRect(14, 54, 56, 20, 2, 2, 'FD');
+      doc.roundedRect(77, 54, 56, 20, 2, 2, 'FD');
+      doc.roundedRect(140, 54, 56, 20, 2, 2, 'FD');
+
+      doc.setFontSize(9);
+      doc.setTextColor(100, 116, 139);
+      doc.text("TOTAL SYSTEMS", 18, 62);
+      doc.text("ACTIVE SYSTEMS", 81, 62);
+      doc.text("INACTIVE SYSTEMS", 144, 62);
+
+      doc.setFontSize(13);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(37, 99, 235);
+      doc.text(`${total}`, 18, 70);
+
+      doc.setTextColor(22, 163, 74);
+      doc.text(`${activeCount}`, 81, 70);
+
+      doc.setTextColor(220, 38, 38);
+      doc.text(`${inactiveCount}`, 144, 70);
+
+      // Systems Detail Table
+      const tableRows = configs.map((c, i) => [
+        i + 1,
+        c.user,
+        c.description,
+        c.active ? 'Active' : 'Inactive'
+      ]);
+
+      if (tableRows.length === 0) {
+        tableRows.push(['-', 'No records', 'No system configurations registered for this department.', '-']);
+      }
+
+      doc.autoTable({
+        startY: 82,
+        head: [['#', 'Assigned User', 'System Configuration Description', 'Status']],
+        body: tableRows,
+        theme: 'striped',
+        headStyles: { fillColor: [15, 23, 42], textColor: 255, fontStyle: 'bold', fontSize: 9 },
+        bodyStyles: { fontSize: 8.5, textColor: [15, 23, 42] },
+        columnStyles: {
+          0: { cellWidth: 10, halign: 'center' },
+          1: { cellWidth: 40, fontStyle: 'bold' },
+          2: { cellWidth: 105 },
+          3: { cellWidth: 25, halign: 'center' }
+        },
+        alternateRowStyles: { fillColor: [248, 250, 252] },
+        didParseCell: function(data) {
+          if (data.column.index === 3 && data.section === 'body') {
+            if (data.cell.raw === 'Active') {
+              data.cell.styles.textColor = [22, 163, 74];
+              data.cell.styles.fontStyle = 'bold';
+            } else if (data.cell.raw === 'Inactive') {
+              data.cell.styles.textColor = [220, 38, 38];
+              data.cell.styles.fontStyle = 'bold';
+            }
+          }
+        }
+      });
+
+      // Footer
+      const pageCount = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(148, 163, 184);
+        doc.text(`IT Operations Portal • ${deptName} Report • Page ${i} of ${pageCount}`, 14, 290);
+      }
+
+      const sanitizedFilename = deptName.toLowerCase().replace(/[^a-z0-9]/g, '_');
+      doc.save(`${sanitizedFilename}_system_report.pdf`);
+    }
+
+    function generateSingleDepartmentPDF() {
+      const selected = document.getElementById('pdf-dept-select').value;
+      if (selected === 'ALL') {
+        generateAllDepartmentsPDF();
+      } else {
+        exportDeptPDF(selected);
+      }
+    }
+
+    function generateAllDepartmentsPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+      const configs = DB.get('configs');
+      const depts = DB.get('departments');
+
+      // Title Banner
+      doc.setFillColor(15, 23, 42); // Slate Dark
+      doc.rect(0, 0, 210, 32, 'F');
+
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text("ALL DEPARTMENTS SYSTEM CONFIGURATION MASTER REPORT", 14, 16);
+
+      doc.setFontSize(9.5);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Generated On: ${new Date().toLocaleString()} | Total Departments: ${depts.length} | Total Systems: ${configs.length}`, 14, 24);
+
+      let currentY = 40;
+
+      depts.forEach((dept, index) => {
+        const deptConfigs = configs.filter(c => c.department === dept.name);
+
+        if (currentY > 240) {
+          doc.addPage();
+          currentY = 20;
+        }
+
+        // Section Title
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(37, 99, 235);
+        doc.text(`${index + 1}. ${dept.name} (${deptConfigs.length} Systems)`, 14, currentY);
+
+        doc.setFontSize(8.5);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100, 116, 139);
+        doc.text(dept.description, 14, currentY + 5);
+
+        const rows = deptConfigs.map((c, i) => [
+          i + 1,
+          c.user,
+          c.description,
+          c.active ? 'Active' : 'Inactive'
+        ]);
+
+        if (rows.length === 0) {
+          rows.push(['-', 'No Systems', 'No configuration registered under this department.', '-']);
+        }
+
+        doc.autoTable({
+          startY: currentY + 8,
+          head: [['#', 'User Name', 'System Description', 'Status']],
+          body: rows,
+          theme: 'striped',
+          headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold', fontSize: 8.5 },
+          bodyStyles: { fontSize: 8, textColor: [15, 23, 42] },
+          columnStyles: {
+            0: { cellWidth: 8, halign: 'center' },
+            1: { cellWidth: 38, fontStyle: 'bold' },
+            2: { cellWidth: 110 },
+            3: { cellWidth: 24, halign: 'center' }
+          },
+          didParseCell: function(data) {
+            if (data.column.index === 3 && data.section === 'body') {
+              if (data.cell.raw === 'Active') {
+                data.cell.styles.textColor = [22, 163, 74];
+                data.cell.styles.fontStyle = 'bold';
+              } else if (data.cell.raw === 'Inactive') {
+                data.cell.styles.textColor = [220, 38, 38];
+                data.cell.styles.fontStyle = 'bold';
+              }
+            }
+          }
+        });
+
+        currentY = doc.lastAutoTable.finalY + 14;
+      });
+
+      // Page numbers footer
+      const pageCount = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(148, 163, 184);
+        doc.text(`Master System Inventory Report • Page ${i} of ${pageCount}`, 14, 290);
+      }
+
+      doc.save('master_department_system_report.pdf');
+    }
+
+    // --- Initial Application Load ---
+    window.addEventListener('DOMContentLoaded', () => {
+      if (localStorage.getItem('departments') === null) {
+        localStorage.clear();
+      }
+      initializeSeedData();
+      updateDepartmentDropdowns();
+      renderConfigs();
+      renderDepartments();
+      renderAssets();
+      renderVisitors();
+    });
+  </script>
+</body>
+</html>
